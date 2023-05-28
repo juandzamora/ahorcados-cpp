@@ -601,7 +601,7 @@ int main()
 
         int ganador = 0;
 
-        for (int i = cantidadJugadores; i > 0; i--)
+        for (int i = cantidadJugadores; i >= 0; i--)
         {
             int actual = cantidadPuntos[i];
 
