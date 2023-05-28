@@ -27,10 +27,6 @@ using std::uniform_int_distribution;
 #include <locale>
 using std::setlocale;
 
-
-#include <cctype>
-
-#include <algorithm>
 /**
  * Antes de empezar a leer este codigo es importante que se visite Guia.md y Enunciado.pdf para entender el porque de ciertas cosas.
  * Esta sera la unica vez que ambos documentos sera mencionado en lo que queda de codigo.
@@ -244,6 +240,7 @@ int main()
 
         //Creamos un arreglo dinamico en el que guardaremos los nombres de cada jugador
         string* nombresLista = new string[cantidadJugadores];
+        int* cantidadPuntos = new int[cantidadJugadores];
 
         /**
          * Iniciamos un for:
@@ -376,6 +373,7 @@ int main()
         */
         frasesDificultad(frasesPersonas, cantidadJugadores, limite, cantidadFrases[dificultad-1], dificultad);
 
+        int puntosDificultad[3] = {110, 210, 310};
         /**
          * Se inicia un bucle for anidado:
          * El primer bucle explora los elementos fila por fila. 
@@ -445,17 +443,23 @@ int main()
                         fraseCompletar[k] = '_';
                     }
                 }
+                if (i == 0)
+                {
+                    cantidadPuntos[j] = 0;
+                }
 
-                        cout << "\n" << fraseMinuscula;
+                int cantidadIntentosLetras = 0;
+                int cantidadIntentosPalabras = 0;
+                cout << "\n" << fraseMinuscula;
                 //Inicia el juego en si dando como maximo 10 turnos por jugador.
                 for (int turnos = 0; turnos < 10; turnos++)
                 {
                     //desicionTurno inicia en 0 y guarda la acción que decide hacer el jugador cada turno.
                     int desicionTurno = 0;
                     //Se imprime el estado actual de la frase a adivinar.
-                    cout << "\n"<<  fraseCompletar;
+                    cout << "\n\n"<<  fraseCompletar;
 
-                    cout << "\n-Ingrese 1 si quiere ingresar una letra.\n-Ingrese 2 si quiere ingresar una palabra.\n";
+                    cout << "\n-Ingrese 1 si quiere ingresar una letra ("<< cantidadIntentosLetras <<").\n-Ingrese 2 si quiere ingresar una palabra(" << cantidadIntentosPalabras << ").\n";
                     cin >> desicionTurno;
                     cin.ignore();
 
@@ -469,6 +473,9 @@ int main()
                     //En caso de querer ingresar una unica letra:
                     if (desicionTurno == 1)
                     {
+                        //Se suma un intento de letras
+                        cantidadIntentosLetras++;
+
                         //Variable donde se guarda la letra
                         char letraActual = ' ';
 
@@ -501,6 +508,8 @@ int main()
                     //Detectar palabra
                     if (desicionTurno == 2)
                     {
+                        cantidadIntentosPalabras++;
+
                         string palabra = " ";
 
                         cout << "\nIngrese una palabra: ";
@@ -583,19 +592,39 @@ int main()
                     if (fraseCompletar == frases)
                     {
                         cout << "\nCompleto la frase!. Sigue el siguiente jugador.";
+                        cantidadPuntos[j] += puntosDificultad[dificultad - 1] - cantidadIntentosLetras;
                         break;
                     }
                 }
             }
         }
-    
-        
+
+        int ganador = 0;
+
+        for (int i = cantidadJugadores; i > 0; i--)
+        {
+            int actual = cantidadPuntos[i];
+
+            if (actual > ganador)
+            {
+                ganador = i;
+            }
+        }
+
+        cout << "\n\nGanador!\n\nNombre: " << nombresLista[ganador] << "\nPuntos: " << cantidadPuntos[ganador] << "\n";
+
+        cout << "\nQuiere cabar el programa? y para si cualquier tecla para no: ";
+        cin >> Salir;
+
+        cout << "\n\n";
 
         //Eliminando las variable usadas en la memoria heap.
         for (int i = 0; i < cantidadJugadores; i++)
         {
             delete[] frasesPersonas[i];
         }
+
+        delete[] cantidadPuntos;
 
         delete[] frasesPersonas;
 
