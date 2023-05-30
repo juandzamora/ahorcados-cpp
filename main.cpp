@@ -15,6 +15,7 @@ using std::ifstream;
 #include <string>
 using std::string;
 using std::getline;
+using std::to_string;
 
 #include <locale.h>
 using std::setlocale;
@@ -27,10 +28,27 @@ using std::uniform_int_distribution;
 #include <locale>
 using std::setlocale;
 
+#include <iomanip>
+using std::setw;
+using std::setfill;
+
 /**
  * Antes de empezar a leer este codigo es importante que se visite Guia.md y Enunciado.pdf para entender el porque de ciertas cosas.
  * Esta sera la unica vez que ambos documentos sera mencionado en lo que queda de codigo.
 */
+
+//Declaración de estructuras:
+
+/**
+ * @brief personaPuntaje almacena el nombre d euna persona junto con su puntaje.
+ * @param nombrePersona[string] Nombre de la persona.
+ * @param puntaje[int] Puntjae de la persona.
+*/
+struct personaPuntaje
+{
+    string nombrePersona;
+    int puntaje;
+};
 
 //Declaración de funciones:
 
@@ -187,8 +205,31 @@ void frasesDificultad(string** jugadoresFrases, int cantidadPersonas, int limite
 }
 
 /**
+ * @brief Consigue la cantidad de digitos de un determinado numero.
+ * @param[int] el númeor a evaluar.
+ * @brief La cantidad de digitos del número dado.
+*/
+int cantidadDigitos (int numero)
+{
+    int resultado = 0;
+
+    int valor = numero;
+    for (int i = 0; valor != 0; i++)
+    {
+        valor = valor / 10;
+
+        if (valor == 0)
+        {
+            resultado = i;
+            break;
+        }
+    }
+    return resultado;
+}
+
+/**
  * @brief Verifica que el archivo de frases si se pueda abrir.
- * @return Si no se puede abrir retorna false. En caso contrario retorna true
+ * @return Si no se puede abrir retorna false. En caso contrario retorna true.
 */
 bool errorArchivo()
 {
@@ -225,15 +266,33 @@ int main()
     {
         int cantidadJugadores = 0;
 
+        /**
+         * Se crea un arreglo con 3 columnas que sera llenado en la función leerArchivo.
+         * Cada espacio del arreglo sera llenado con la cantidad de frases de cada dificultad.
+         * Ejemplo: cantidadFrases[0] = cantidad de frases de dificiultad facil.
+        */
+        int cantidadFrases[3] = {0, 0, 0};
+
+        leerArchivo(cantidadFrases);
+
+        int mayorFrases = 0;
+        for (int i = 0; i <3; i++)
+        {
+            if (cantidadFrases[i] > mayorFrases)
+            {
+                mayorFrases = cantidadFrases[i];
+            }
+        }
         //Le pedimos al anfitrion la cantidad de jugadores que van a jugar
         cout << "Cuantos jugadores van a ingresar al juego?:\n";
         cin >> cantidadJugadores;
         cin.ignore();
 
+        //Verificar que la cantidad de personas si sean suficientes 
         //En caso de que el anfitrion ingrese una cantidad menor a 1 se le pide que ingrese un valor mayor infitamente hasta que lo haga.
-        while (cantidadJugadores < 1)
+        while (cantidadJugadores < 1 || cantidadJugadores > mayorFrases)
         {
-            cout << "\nPor favor ingrese una cantidad de jugadores igual o  mayor a 1:\n";
+            cout << "\nPor favor ingrese una cantidad de jugadores entre 1 y "<< mayorFrases <<":\n";
             cin >> cantidadJugadores;
             cin.ignore();
         }
@@ -250,7 +309,7 @@ int main()
         for(int i = 0; i < cantidadJugadores; i++)
         {
             //Iniciamos dos variables vacias
-            string nombre = " ";
+            string nombre;
             int posicion = 0;
 
             //Le pedimos que ingrese el nombre del jugador
@@ -294,7 +353,7 @@ int main()
                 //Verifica que el valor sea valido.
                 while(posicion>cantidadJugadores || posicion<1)
                 {
-                    cout << "\nIngrese una posicion correcta (Entre 1 y " << cantidadJugadores << ") :";
+                    cout << "\nIngrese una posicion correcta (Entre 1 y " << cantidadJugadores << "): ";
                     cin >> posicion;
                     cin.ignore();
                 }
@@ -309,24 +368,32 @@ int main()
         int dificultad = 0;
 
         //Le preguntamos la dificultad que se quiera al anfitrion.
-        cout << "\nPor favor ingrese la dificultad a la que van a jugar (Entre 1 a 3):\n1. Facil.\n2. Medio.\n3. Dificil.\n";
+        cout << "\n\nPor favor ingrese la dificultad a la que van a jugar (Entre 1 a 3):\n1. Facil.\n2. Medio.\n3. Dificil.\nDificultad: ";
         cin >> dificultad;
 
         //Si el valor de dificultad no esta entre 1 y 3 se ejecuta el while para asegurarse de que se escriba un valor corrrecto.
-        while (dificultad > 3 || dificultad < 1)
+        while (dificultad > 3 || dificultad < 1 || cantidadFrases[dificultad - 1] < cantidadJugadores)
         {
-            cout << "\nIngrese una dificultad validad (Entre 1 a 3): ";
-            cin >> dificultad;
+            if (dificultad > 3 || dificultad < 1 )
+            {
+                cout << "\nIngrese una dificultad validad (Entre 1 a 3): ";
+                cin >> dificultad;
+            }
+            else if (cantidadFrases[dificultad - 1] < cantidadJugadores)
+            {
+                cout << "La dificultad elegida tiene menos palabras que la cantidad de jugadores.\nSi quiere jugar elija alguna de estas dificultades:"
+                        "\nDificultades posibles: ";
+                for (int i = 0; i < 3; i++)
+                {
+                    if (cantidadFrases[i] >= cantidadJugadores)
+                    {
+                        cout << i + 1 << ", ";
+                    }
+                }
+                cout << " por favor escoja una de estas.\nDificultad: ";
+                cin >> dificultad;
+            }
         }
-
-        /**
-         * Se crea un arreglo con 3 columnas que sera llenado en la función leerArchivo.
-         * Cada espacio del arreglo sera llenado con la cantidad de frases de cada dificultad.
-         * Ejemplo: cantidadFrases[0] = cantidad de frases de dificiultad facil.
-        */
-        int cantidadFrases[3] = {0, 0, 0};
-
-        leerArchivo(cantidadFrases);
 
         //Se crea una variable vacia para declarar el limite.
         int limite = 0;
@@ -389,8 +456,17 @@ int main()
                 //Se consigue la frase del turno actual.
                 string frases = frasesPersonas[j][i];
 
-                int cantidadPalabras = frases[2] + '0';
-                
+                string fraseSinModificar = frasesPersonas[j][i];
+
+                int cantidadPalabras = fraseSinModificar[2] - '0';
+                if (cantidadPalabras == 1)
+                {
+                    if (fraseSinModificar[3] == '0')
+                    {
+                        cantidadPalabras = 10;
+                    }
+                }
+
                 string fraseMinuscula = frases;
 
                 /**
@@ -400,39 +476,48 @@ int main()
                  * Al hacer esto tambien se modifica el tamaño directo del string
                 */
                 int contadorLetras = 0;
-                for (int k = 4; k < frases.length(); k++)
+
+                int determinar = 4;
+
+                if(cantidadPalabras == 10)
+                {
+                    determinar = 5;
+                }
+
+                for (; determinar < static_cast<int>(frases.length()); determinar++)
                 {
                     //Se deja la primera letra mayuscula
-                    if (contadorLetras == 0){
-                        frases[contadorLetras] = frases[k];
-                        fraseMinuscula[contadorLetras] = tolower(fraseMinuscula[k]);
+                    if (contadorLetras == 0)
+                    {
+                        frases[contadorLetras] = frases[determinar];
+                        fraseMinuscula[contadorLetras] = tolower(fraseMinuscula[determinar]);
                         contadorLetras++;
                         continue;
                     }
                     
                     //Se deja el resto minuscula con la ayuda de tolower().
-                    char actual = frases[k];
-                    char actualMinuscula = fraseMinuscula[k];
+                    char actual = frases[determinar];
 
                     frases[contadorLetras] = tolower(actual);
                     fraseMinuscula[contadorLetras] = tolower(actual);
 
                     contadorLetras++;
+
                     /**
                      * Antes de que se termino el ciclo for se eliminan los valores desde el final de la frase minuscula hasta el restante de las mayusculas:
                      * Ej: Sin esto la frase "Dios es amor" terminaria "Dios es amorAMOR" ya que no se elimina lo que queda de mayuculas
                     */
-                    if (k + 1 == frases.length())
+                    if (determinar + 1 == static_cast<int>(frases.length()))
                     {
-                        frases.erase(contadorLetras, frases.length());
-                        fraseMinuscula.erase(contadorLetras, fraseMinuscula.length());
+                        frases.erase(contadorLetras, frases.length() - contadorLetras);
+                        fraseMinuscula.erase(contadorLetras, fraseMinuscula.length() - contadorLetras);
                     }       
                 }
-                
+
                 //Se crea una string con un tamaño definido y completamente vacia.
                 string fraseCompletar (frases.length(), ' ');
                 //fraseCompletar se convierte a formato de ahorcados (ej: uno es bueno = ___ __ _____).
-                for (int k = 0; k < frases.length(); k++)
+                for (int k = 0; k < static_cast<int>(frases.length()); k++)
                 {
                     if (frases[k] == ' ')
                     {
@@ -443,30 +528,112 @@ int main()
                         fraseCompletar[k] = '_';
                     }
                 }
+
                 if (i == 0)
                 {
                     cantidadPuntos[j] = 0;
                 }
 
+                int* espacios = new int[cantidadPalabras];
+
+                int contador = 0;
+                //Encontrar la posición de los espacios entre palabras.
+                for (int k = 0; k < static_cast<int>(frases.length()); k++)
+                {      
+                    if (frases[k] == ' ')
+                    {
+                        espacios[contador] = k;
+                        contador++;
+                    }
+                }
+                espacios[contador + 1] = frases.length() + 1;
+                contador++;
+
                 int cantidadIntentosLetras = 0;
                 int cantidadIntentosPalabras = 0;
-                cout << "\n" << fraseMinuscula;
+                int cantidadIntentosFrases = 0;
+
+                int cantidadDigitosPuntos = cantidadDigitos(cantidadPuntos[j]);
+                int cantidadDigitosLetras = cantidadDigitos(fraseCompletar.length() - cantidadPalabras);
+                int cantidadDigitosPalabras = cantidadDigitos(cantidadPalabras);
+                
+
+                int contadorCaracteresStatus = 0;
+                string palabrasStatus;
+                palabrasStatus.reserve(80);
+                palabrasStatus = "\n|  Letra: ";
+                for (int k = 0; k < cantidadPalabras; k++)
+                {
+                    if (k == 0)
+                    {
+                        string texto = to_string(k + 1) + "-" + to_string(espacios[k]);
+                        contadorCaracteresStatus += texto.length();
+                        palabrasStatus += texto;
+                    }
+                    else if (k + 1 == contador)
+                    {
+                        string texto =  to_string(k + 1) + "-" + to_string(fraseCompletar.length() - espacios[k-1] - 1);
+                        contadorCaracteresStatus += texto.length();
+                        palabrasStatus += texto;
+                    }
+                    else
+                    {
+                        string texto = to_string(k + 1) + "-" + to_string(espacios[k] - espacios[k-1] - 1);
+                        contadorCaracteresStatus += texto.length();
+                        palabrasStatus += texto;   
+                    }
+
+                    if (k + 1 == contador)
+                    {
+                        palabrasStatus += ".";
+                        contadorCaracteresStatus += 1;
+                    }
+                    else
+                    {
+                        palabrasStatus += ", ";
+                        contadorCaracteresStatus += 2;
+                    }
+                }
+
+                delete[] espacios;
+
                 //Inicia el juego en si dando como maximo 10 turnos por jugador.
                 for (int turnos = 0; turnos < 10; turnos++)
                 {
                     //desicionTurno inicia en 0 y guarda la acción que decide hacer el jugador cada turno.
                     int desicionTurno = 0;
-                    //Se imprime el estado actual de la frase a adivinar.
-                    cout << "\n\n"<<  fraseCompletar;
 
-                    cout << "\n-Ingrese 1 si quiere ingresar una letra ("<< cantidadIntentosLetras <<").\n-Ingrese 2 si quiere ingresar una palabra(" << cantidadIntentosPalabras << ").\n";
+
+                    //Se imprime el estado actual de la frase a adivinar.
+                    cout << "\n--------------------------------------------------------------"
+                         << "\n|  Su frase contiene " << cantidadPalabras << " palabras y " << fraseCompletar.length() - cantidadPalabras << " letras." << setw(21 - cantidadDigitosLetras - cantidadDigitosPalabras - 2) << "|";
+                    cout << palabrasStatus << setw(63 - palabrasStatus.length()) << "|";
+                    cout << "\n|" << setw(61) << "|"
+                         << "\n|  "<<  fraseCompletar << setw(59 - fraseCompletar.length()) << "|"
+                         << "\n|------------------------------------------------------------|"
+                         << "\n|" << setw(61) << "|"
+                         << "\n|  -Ingrese 1 si quiere ingresar una letra (" << cantidadIntentosLetras << ")." << setw(15) << "|"
+                         << "\n|  -Ingrese 2 si quiere ingresar una palabra(" << cantidadIntentosPalabras << ")." << setw(14) << "|"
+                         << "\n|  -Ingrese 3 si quiere intentar la frase completa (" << cantidadIntentosFrases << ")." << setw(7) << "|"
+                         << "\n|" << setw(61) << "|"
+                         << "\n|  Turnos jugados: " << turnos << setw(42) << "|"
+                         << "\n|  Puntos obtenidos: " << cantidadPuntos[j] << setw(41 - cantidadDigitosPuntos - 1) << "|"
+                         << "\n--------------------------------------------------------------"
+                         << "\n\nEscoja una: ";
+
                     cin >> desicionTurno;
                     cin.ignore();
 
                     //En caso de que el jugador haya elejido un valor distinto a 1 y 2 se ejecuta un while que le pide un valor correcto.
-                    while (desicionTurno != 1 && desicionTurno != 2)
+                    while (desicionTurno < 0 || desicionTurno > 3)
                     {
-                        cout << "\nElija un valor entre 1 y 2.\n-Ingrese 1 si quiere ingresar una letra.\n-Ingrese 2 si quiere ingresar una palabra.\n";
+                        cout << "\n--------------------------------------------------------------"
+                             << "\n|  Incorrecto! Elija un valor entre 1 y 3." << setw(20) << "|"
+                             << "\n|------------------------------------------------------------|"
+                             << "\n|  -Ingrese 1 si quiere ingresar una letra (" << cantidadIntentosLetras << ")." << setw(15) << "|"
+                             << "\n|  -Ingrese 2 si quiere ingresar una palabra(" << cantidadIntentosPalabras << ")." << setw(14) << "|"
+                             << "\n|  -Ingrese 3 si quiere intentar la frase completa (" << cantidadIntentosFrases << ")." << setw(7) << "|"
+                             << "\n--------------------------------------------------------------\n\n";
                         cin >> desicionTurno;
                         cin.ignore();
                     }
@@ -486,7 +653,7 @@ int main()
                         bool verificar = false ;
 
                         //Verifica que la letra este en la frase y de ser asi la pone en todas las posiciones donde se encuentra
-                        for (int k = 0; k < fraseCompletar.length(); k++)
+                        for (int k = 0; k < static_cast<int>(fraseCompletar.length()); k++)
                         {
                             if (fraseMinuscula[k] == letraActual && fraseCompletar[k] != letraActual)
                             {
@@ -510,7 +677,7 @@ int main()
                     {
                         cantidadIntentosPalabras++;
 
-                        string palabra = " ";
+                        string palabra;
 
                         cout << "\nIngrese una palabra: ";
                         getline(cin, palabra);
@@ -519,13 +686,14 @@ int main()
 
                         int palabraActualPosicion = 0;
 
-                        for (int k = 0; k < frases.length(); k++)
+                        for (int k = 0; k < static_cast<int>(fraseCompletar.length()); k++)
                         {
+                            
                             string verificarPalabra  = fraseMinuscula; 
                             if (verificarPalabra[k] == ' ')
                             {
                                 if (palabraActualPosicion!=  0)
-                                {                
+                                {           
                                     int meVale = palabraActualPosicion + 1;
                                     for (int l = 0; l < k - palabraActualPosicion - 1; l ++)
                                     {
@@ -537,7 +705,6 @@ int main()
                                 else
                                 {
                                     verificarPalabra.erase(k, verificarPalabra.length());
-
                                 }
 
                                 if (verificarPalabra == palabra)
@@ -562,8 +729,8 @@ int main()
                                 }
                                 palabraActualPosicion = k;
                             }
-                            if (k + 1 == frases.length())
-                            {      
+                            if (k + 1 == static_cast<int>(frases.length()))
+                            {    
                                 int meVale = palabraActualPosicion + 1;
                                 for (int l = 0; l < k - palabraActualPosicion + 1; l ++)
                                 {
@@ -589,21 +756,52 @@ int main()
                             cout << "\nLa palabra ingresada no se encuentra en la frase";
                         }
                     }
+
+                    //Para adivinar la frase completa
+                    if(desicionTurno == 3)
+                    {
+                        string frase;
+                        cout << "\nIngrese la frase: ";
+                        getline (cin, frase);
+
+                        if (frase == fraseMinuscula || frase == frases)
+                        {
+                            fraseCompletar = frases;
+                            cout << "\nFrase correcta!";
+                        }
+                        else
+                        {
+                            cout << "\nFrase incorrecta.";
+                        }
+                        cantidadIntentosFrases++;
+                    }
                     if (fraseCompletar == frases)
                     {
-                        cout << "\nCompleto la frase!. Sigue el siguiente jugador.";
+                        cout << "\n\nCompleto la frase!. Sigue el siguiente jugador.";
                         cantidadPuntos[j] += puntosDificultad[dificultad - 1] - cantidadIntentosLetras;
                         break;
+                    }
+                    if (turnos + 1 == 10)
+                    {
+                        cout << "\n\nNo logro adivinar la frase, pasando al siguiente jugador.";
                     }
                 }
             }
         }
 
+        personaPuntaje* puntajes = new personaPuntaje[cantidadJugadores];
+
+        for (int i = 0; i < cantidadJugadores; i++)
+        {
+            puntajes[i].nombrePersona = nombresLista[i];
+            puntajes[i].puntaje = cantidadPuntos[i];
+        }
+        
         int ganador = 0;
 
         for (int i = cantidadJugadores; i >= 0; i--)
         {
-            int actual = cantidadPuntos[i];
+            int actual = puntajes[i].puntaje;
 
             if (actual > ganador)
             {
@@ -629,6 +827,8 @@ int main()
         delete[] frasesPersonas;
 
         delete[] nombresLista;
+
+        delete[] puntajes;
     }
     return 0;
 }
