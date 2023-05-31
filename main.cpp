@@ -1,4 +1,4 @@
-//Juan David Zamora Guarin 25/04/2023
+//Juan David Zamora Guarin - Liseth Tatiana Daza Gómez 25/04/2023
 //Archivo principal del proyecto final 2023
 
 //Librerias y documentos
@@ -31,6 +31,9 @@ using std::setlocale;
 #include <iomanip>
 using std::setw;
 using std::setfill;
+
+#include <algorithm>
+using std::sort;
 
 /**
  * Antes de empezar a leer este codigo es importante que se visite Guia.md y Enunciado.pdf para entender el porque de ciertas cosas.
@@ -243,6 +246,55 @@ bool errorArchivo()
     return true;
 }
 
+/**
+ * @brief separarFrase separa una palabra especifica de una frase.
+ * @param numeroPalabra[int] Selecciona el numero de la palabra a escojer.
+ * @param frase[string] La frase de donde se sacara esa palabra.
+ * @return La palabra separada.
+*/
+string separarFrases(int numeroPalabra, string frase)
+{
+    int contador = 0;
+    int posicionEspacioAnterior = 0;
+    string resultado;
+    for (int i = 0; i < frase.length(); i++)
+    {
+        if (frase[i] == ' ')
+        {
+            if (contador == numeroPalabra)
+            {
+                if (contador != 0)
+                {
+                    posicionEspacioAnterior += 1;
+                }
+
+                for (int j = posicionEspacioAnterior; j < i; j++)
+                {
+                    resultado += frase[j];
+                }
+                return resultado;
+            }
+            posicionEspacioAnterior = i;
+            contador++;
+        }
+
+        if (i + 1 == frase.length())
+        {
+            if (contador != numeroPalabra)
+            {
+                break;
+            }
+            for (int j = posicionEspacioAnterior + 1; j < frase.length(); j++)
+            {
+                resultado += frase[j];
+            }
+
+            return resultado;
+        }
+    }
+    return "No habian tantas palabras";
+}
+
 
 /*Incio función main*/
 int main()
@@ -276,6 +328,7 @@ int main()
         leerArchivo(cantidadFrases);
 
         int mayorFrases = 0;
+        //Detecta la dificultad que tiene más frases para ponerlo como limites de jugadores
         for (int i = 0; i <3; i++)
         {
             if (cantidadFrases[i] > mayorFrases)
@@ -288,7 +341,7 @@ int main()
         cin >> cantidadJugadores;
         cin.ignore();
 
-        //Verificar que la cantidad de personas si sean suficientes 
+        //Verificar que la cantidad de personas si sean suficientes.
         //En caso de que el anfitrion ingrese una cantidad menor a 1 se le pide que ingrese un valor mayor infitamente hasta que lo haga.
         while (cantidadJugadores < 1 || cantidadJugadores > mayorFrases)
         {
@@ -351,7 +404,7 @@ int main()
                 cin.ignore();
 
                 //Verifica que el valor sea valido.
-                while(posicion>cantidadJugadores || posicion<1)
+                while (posicion > cantidadJugadores || posicion < 1)
                 {
                     cout << "\nIngrese una posicion correcta (Entre 1 y " << cantidadJugadores << "): ";
                     cin >> posicion;
@@ -363,7 +416,12 @@ int main()
         }
 
         //Segundo punto del taller.
-
+        
+        //Imprimir mensaje con la cantidad de frases de cada dificultad.
+        cout << "\n\nCantidad de frases total: " << cantidadFrases[0] + cantidadFrases[1] + cantidadFrases[2] << "."
+             << "\n\nCantidad de frases de dificultad facil: " << cantidadFrases[0] << "."
+             << "\nCantidad de frases de dificultad media: " << cantidadFrases[1] << "."
+             << "\nCantidad de frases de dificultad dificil: " << cantidadFrases[2] << ".";
         //Definimos dificultad en 0.
         int dificultad = 0;
 
@@ -381,7 +439,7 @@ int main()
             }
             else if (cantidadFrases[dificultad - 1] < cantidadJugadores)
             {
-                cout << "La dificultad elegida tiene menos palabras que la cantidad de jugadores.\nSi quiere jugar elija alguna de estas dificultades:"
+                cout << "\nLa dificultad elegida tiene menos palabras que la cantidad de jugadores.\n\nSi quiere jugar elija alguna de estas dificultades:"
                         "\nDificultades posibles: ";
                 for (int i = 0; i < 3; i++)
                 {
@@ -390,7 +448,7 @@ int main()
                         cout << i + 1 << ", ";
                     }
                 }
-                cout << " por favor escoja una de estas.\nDificultad: ";
+                cout << " por favor escoja una de estas.\n\nDificultad: ";
                 cin >> dificultad;
             }
         }
@@ -534,7 +592,7 @@ int main()
                     cantidadPuntos[j] = 0;
                 }
 
-                int* espacios = new int[cantidadPalabras];
+                int* espacios = new int[cantidadPalabras + 1];
 
                 int contador = 0;
                 //Encontrar la posición de los espacios entre palabras.
@@ -595,7 +653,6 @@ int main()
                     }
                 }
 
-                delete[] espacios;
 
                 //Inicia el juego en si dando como maximo 10 turnos por jugador.
                 for (int turnos = 0; turnos < 10; turnos++)
@@ -605,7 +662,9 @@ int main()
 
 
                     //Se imprime el estado actual de la frase a adivinar.
-                    cout << "\n--------------------------------------------------------------"
+                    cout << "\n--------------------------------------------------------------";
+                    cout << "\n|" << nombresLista[j] << setw(61 - nombresLista[j].length()) << "|";
+                    cout << "\n|------------------------------------------------------------|"
                          << "\n|  Su frase contiene " << cantidadPalabras << " palabras y " << fraseCompletar.length() - cantidadPalabras << " letras." << setw(21 - cantidadDigitosLetras - cantidadDigitosPalabras - 2) << "|";
                     cout << palabrasStatus << setw(63 - palabrasStatus.length()) << "|";
                     cout << "\n|" << setw(61) << "|"
@@ -686,68 +745,34 @@ int main()
 
                         int palabraActualPosicion = 0;
 
-                        for (int k = 0; k < static_cast<int>(fraseCompletar.length()); k++)
+                        for (int k = 0; k < cantidadPalabras; k++)
                         {
-                            
-                            string verificarPalabra  = fraseMinuscula; 
-                            if (verificarPalabra[k] == ' ')
+                            string verificarMayuscula;
+                            if (k == 0)
                             {
-                                if (palabraActualPosicion!=  0)
-                                {           
-                                    int meVale = palabraActualPosicion + 1;
-                                    for (int l = 0; l < k - palabraActualPosicion - 1; l ++)
+                                verificarMayuscula = separarFrases(k, frases);
+                            }
+                            string verificarMinuscula = separarFrases(k, fraseMinuscula);
+
+                            if (verificarMinuscula == palabra || verificarMayuscula == palabra)
+                            {
+                                verificar = true;
+
+                                if (k == 0)
+                                {
+                                    for (int l = 0; l < verificarMayuscula.length(); l++)
                                     {
-                                        verificarPalabra[l] = verificarPalabra[meVale];
-                                        meVale++;
+                                        fraseCompletar[l] = verificarMayuscula[l];
                                     }
-                                    verificarPalabra.erase(k - palabraActualPosicion - 1, verificarPalabra.length());
                                 }
                                 else
                                 {
-                                    verificarPalabra.erase(k, verificarPalabra.length());
-                                }
-
-                                if (verificarPalabra == palabra)
-                                {
-                                    if (palabraActualPosicion == 0)
+                                    int traspasarCarateresPosicion = espacios[k - 1];
+                                    for (int l = 0; l < verificarMinuscula.length(); l++)
                                     {
-                                        for (int l = 0; l < k; l++)
-                                        {
-                                            fraseCompletar[l] = frases[l];
-                                        }
+                                        fraseCompletar[traspasarCarateresPosicion + 1] = verificarMinuscula[l];
+                                        traspasarCarateresPosicion++;
                                     }
-                                    else
-                                    {
-                                        int guiaLetraCambiar = palabraActualPosicion + 1;
-                                        for (int l = 0; l < k - palabraActualPosicion - 1; l++)
-                                        {
-                                            fraseCompletar[guiaLetraCambiar] = palabra[l];
-                                            guiaLetraCambiar++;
-                                        }
-                                    }
-                                    verificar = true;
-                                }
-                                palabraActualPosicion = k;
-                            }
-                            if (k + 1 == static_cast<int>(frases.length()))
-                            {    
-                                int meVale = palabraActualPosicion + 1;
-                                for (int l = 0; l < k - palabraActualPosicion + 1; l ++)
-                                {
-                                    verificarPalabra[l] = verificarPalabra[meVale];
-                                    meVale++;
-                                }
-                                verificarPalabra.erase(k - palabraActualPosicion, verificarPalabra.length());
-                                if (verificarPalabra == palabra)
-                                {
-                                    int guiaLetraCambiar = palabraActualPosicion + 1;
-
-                                    for (int l = 0; l < k - palabraActualPosicion + 1; l++)
-                                    {
-                                        fraseCompletar[guiaLetraCambiar] = palabra[l];
-                                        guiaLetraCambiar++;
-                                    }
-                                    verificar = true;
                                 }
                             }
                         }
@@ -766,7 +791,7 @@ int main()
 
                         if (frase == fraseMinuscula || frase == frases)
                         {
-                            fraseCompletar = frases;
+                            fraseCompletar.assign(frases);
                             cout << "\nFrase correcta!";
                         }
                         else
@@ -775,17 +800,32 @@ int main()
                         }
                         cantidadIntentosFrases++;
                     }
-                    if (fraseCompletar == frases)
+                    if (fraseCompletar == frases || fraseCompletar == fraseMinuscula)
                     {
-                        cout << "\n\nCompleto la frase!. Sigue el siguiente jugador.";
+                        if (i + 1 == limite && j + 1 == cantidadJugadores)
+                        {
+                            cout << "\n\nCompleto la frase. Termino el juego! a continuacion la tabla de posiciones:";
+                        }
+                        else
+                        {
+                            cout << "\n\nCompleto la frase, sigue el proximo jugador!";
+                        }
                         cantidadPuntos[j] += puntosDificultad[dificultad - 1] - cantidadIntentosLetras;
                         break;
                     }
                     if (turnos + 1 == 10)
                     {
-                        cout << "\n\nNo logro adivinar la frase, pasando al siguiente jugador.";
+                        if (i + 1 == limite && j + 1 == cantidadJugadores)
+                        {
+                            cout << "\n\nCompleto la frase. Termino el juego! a continuacion la tabla de posiciones:";
+                        }
+                        else
+                        {
+                            cout << "\n\nNo logro adivinar la frase, sigue el proximo jugador!";
+                        }
                     }
                 }
+                delete[] espacios;
             }
         }
 
@@ -796,20 +836,50 @@ int main()
             puntajes[i].nombrePersona = nombresLista[i];
             puntajes[i].puntaje = cantidadPuntos[i];
         }
-        
-        int ganador = 0;
 
-        for (int i = cantidadJugadores; i >= 0; i--)
+        personaPuntaje* tablaResultados = new personaPuntaje[cantidadJugadores];
+
+        cout << "\n\nPuesto" << setw(10) << "Nombre" << setw(10) << "Puntaje";
+        for (int i = 0; i < cantidadJugadores; i++)
         {
-            int actual = puntajes[i].puntaje;
-
-            if (actual > ganador)
+            if (i == 0)
             {
-                ganador = i;
+                tablaResultados[i].nombrePersona = puntajes[i].nombrePersona;
+                tablaResultados[i].puntaje = puntajes[i].puntaje;
+                continue;
+            }
+
+            personaPuntaje puntajeActual;
+            personaPuntaje puntajeAnterior;
+            for (int j = 0; j < i + 1; j++)
+            {
+                if (puntajes[j].puntaje == 0)
+                {
+                    tablaResultados[j] = puntajes[i];
+                    tablaResultados[j] = puntajes[i];
+                    break;
+                }
+
+                if (puntajes[i].puntaje > tablaResultados[j].puntaje)
+                {
+                    puntajeAnterior =  puntajes[i];
+                    for (int k = j; k < i + 1; k++)
+                    {
+                        puntajeActual = tablaResultados[k];
+
+                        tablaResultados[k] =  puntajeAnterior;
+
+                        puntajeAnterior = puntajeActual;
+                    }
+                    break;
+                }
             }
         }
+        for (int i = 0; i < cantidadJugadores; i++)
+        {
+            cout << "\n" << i + 1 << setw(13) << tablaResultados[i].nombrePersona << setw(10) << tablaResultados[i].puntaje;
+        }
 
-        cout << "\n\nGanador!\n\nNombre: " << nombresLista[ganador] << "\nPuntos: " << cantidadPuntos[ganador] << "\n";
 
         cout << "\nQuiere cabar el programa? y para si cualquier tecla para no: ";
         cin >> Salir;
@@ -830,5 +900,8 @@ int main()
 
         delete[] puntajes;
     }
+
+    cout << "\n\nMuchas gracias por jugar el juego, hasta pronto!";
+
     return 0;
 }
